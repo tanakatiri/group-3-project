@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phone Validation Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .test-card {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #333;
+    }
+    input[type="tel"] {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    input[type="tel"]:focus {
+      outline: none;
+      border-color: #4CAF50;
+    }
+    input[type="tel"]:invalid {
+      border-color: #f44336;
+    }
+    input[type="tel"]:valid {
+      border-color: #4CAF50;
+    }
+    small {
+      display: block;
+      margin-top: 5px;
+      color: #666;
+      font-size: 14px;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 4px;
+      display: none;
+    }
+    .result.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .result.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .examples {
+      background: #f9f9f9;
+      padding: 15px;
+      border-radius: 4px;
+      margin-top: 20px;
+    }
+    .examples h3 {
+      margin-top: 0;
+      color: #333;
+    }
+    .example-item {
+      margin: 8px 0;
+      font-family: monospace;
+    }
+    .valid {
+      color: #4CAF50;
+    }
+    .invalid {
+      color: #f44336;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-card">
+    <h1>📱 Phone Number Validation Test</h1>
+    <p class="subtitle">Zimbabwe Format: +263 followed by 9 digits</p>
+    
+    <form id="testForm">
+      <div class="form-group">
+        <label for="phoneInput">Phone Number *</label>
+        <input 
+          type="tel" 
+          id="phoneInput" 
+          required 
+          pattern="\+263[0-9]{9}" 
+          placeholder="+263771234567"
+          title="Phone number must be in format +263 followed by 9 digits"
+        >
+        <small>Format: +263 followed by 9 digits (e.g., +263771234567)</small>
+      </div>
+      
+      <button type="submit">Validate Phone Number</button>
+    </form>
+    
+    <div id="result" class="result"></div>
+    
+    <div class="examples">
+      <h3>Test Examples:</h3>
+      <div class="example-item valid">✅ +263771234567 (Valid)</div>
+      <div class="example-item valid">✅ +263712345678 (Valid)</div>
+      <div class="example-item invalid">❌ 263771234567 (Missing +)</div>
+      <div class="example-item invalid">❌ +26377123456 (Only 8 digits)</div>
+      <div class="example-item invalid">❌ +2637712345678 (10 digits)</div>
+      <div class="example-item invalid">❌ +263 77 123 4567 (Contains spaces)</div>
+    </div>
+  </div>
+
+  <script>
+    // Validation function
+    function validatePhoneNumber(phone) {
+      const phoneRegex = /^\+263[0-9]{9}$/;
+      return phoneRegex.test(phone);
+    }
+
+    // Form submission handler
+    document.getElementById('testForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const phoneInput = document.getElementById('phoneInput');
+      const resultDiv = document.getElementById('result');
+      const phoneValue = phoneInput.value;
+      
+      // Clear previous result
+      resultDiv.style.display = 'none';
+      resultDiv.className = 'result';
+      
+      // Validate
+      if (validatePhoneNumber(phoneValue)) {
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = `
+          <strong>✅ Valid Phone Number!</strong><br>
+          Phone: ${phoneValue}<br>
+          Format: Correct Zimbabwe format (+263 + 9 digits)
+        `;
+        resultDiv.style.display = 'block';
+      } else {
+        resultDiv.className = 'result error';
+        resultDiv.innerHTML = `
+          <strong>❌ Invalid Phone Number!</strong><br>
+          Phone: ${phoneValue}<br>
+          Error: Must be +263 followed by exactly 9 digits
+        `;
+        resultDiv.style.display = 'block';
+      }
+    });
+
+    // Real-time validation feedback
+    document.getElementById('phoneInput').addEventListener('input', function(e) {
+      const input = e.target;
+      if (input.value.length > 0) {
+        if (validatePhoneNumber(input.value)) {
+          input.style.borderColor = '#4CAF50';
+        } else {
+          input.style.borderColor = '#f44336';
+        }
+      } else {
+        input.style.borderColor = '#ddd';
+      }
+    });
+  </script>
+</body>
+</html>

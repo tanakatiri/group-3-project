@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RentHub - Property Portal</title>
+    <link rel="stylesheet" href="portal-style.css">
+</head>
+<body>
+    <!-- Dynamic Menu Container (populated by JavaScript based on role) -->
+    <div id="dynamicMenuContainer"></div>
+
+    <!-- Header (shown only when not logged in) -->
+    <nav class="navbar" id="staticNavbar">
+        <div class="container">
+            <div class="nav-content">
+                <div class="logo">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                    <span>RentHub</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Authentication Section -->
+        <div id="auth" class="section active">
+            <div class="auth-container">
+                <div class="auth-card">
+                    <h1>Welcome to RentHub</h1>
+                    <p class="subtitle">Your trusted property rental platform</p>
+                    
+                    <div class="tabs">
+                        <button class="tab-btn active" onclick="switchAuthTab('login')">Login</button>
+                        <button class="tab-btn" onclick="switchAuthTab('register')">Register</button>
+                    </div>
+
+                    <!-- Login Form -->
+                    <div id="loginTab" class="auth-tab active">
+                        <form id="loginForm" onsubmit="handleLogin(event)">
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" id="loginEmail" required placeholder="your@email.com">
+                            </div>
+                            <div class="form-group">
+                                <label>Password</label>
+                                <input type="password" id="loginPassword" required placeholder="Enter your password" autocomplete="current-password">
+                            </div>
+                            <div class="form-group">
+                                <label>Login as:</label>
+                                <select id="loginRole" required>
+                                    <option value="tenant">Tenant</option>
+                                    <option value="landlord">Landlord</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Login</button>
+                        </form>
+                    </div>
+
+                    <!-- Register Form -->
+                    <div id="registerTab" class="auth-tab">
+                        <p style="text-align: center; margin-bottom: 1.5rem; color: #666;">Choose your account type:</p>
+                        
+                        <form id="registerForm" onsubmit="handleRegister(event)">
+                            <div class="form-group">
+                                <label>Full Name *</label>
+                                <input type="text" id="regFullName" required pattern="[A-Za-z\s\-']{2,50}" placeholder="Enter your full name" title="Only letters, spaces, hyphens and apostrophes allowed (2-50 characters)">
+                            </div>
+                            <div class="form-group">
+                                <label>Email *</label>
+                                <input type="email" id="regEmail" required pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" placeholder="your@email.com" title="Please enter a valid email address">
+                            </div>
+                            <div class="form-group">
+                                <label>Phone Number *</label>
+                                <input type="tel" id="regPhone" required pattern="\+2637[1378][0-9]{7}" placeholder="+263771234567" title="Must start with +263 followed by 71, 73, 77, or 78, then 7 more digits">
+                            </div>
+                            <div class="form-group">
+                                <label>Password *</label>
+                                <input type="password" id="regPassword" required minlength="6" placeholder="At least 6 characters" autocomplete="new-password">
+                            </div>
+                            
+                            <input type="hidden" id="regRole" value="">
+                            
+                            <div class="registration-buttons">
+                                <button type="submit" class="btn btn-tenant" onclick="setRole('tenant')">
+                                    <span class="btn-icon">🏠</span>
+                                    <span class="btn-text">
+                                        <strong>Register as Tenant</strong>
+                                        <small>Find your perfect home</small>
+                                    </span>
+                                </button>
+                                <button type="submit" class="btn btn-landlord" onclick="setRole('landlord')">
+                                    <span class="btn-icon">🏢</span>
+                                    <span class="btn-text">
+                                        <strong>Register as Landlord</strong>
+                                        <small>List your properties</small>
+                                    </span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tenant Portal -->
+        <div id="tenant-portal" class="section">
+            <div class="portal-header">
+                <h1>Find Your Perfect Home</h1>
+                <p>Browse available properties</p>
+            </div>
+
+            <!-- Search & Filters -->
+            <div class="search-section">
+                <div class="search-grid">
+                    <div class="form-group">
+                        <input type="text" id="searchLocation" placeholder="Search by location...">
+                    </div>
+                    <div class="form-group">
+                        <input type="number" id="searchMaxPrice" placeholder="Max Price">
+                    </div>
+                    <div class="form-group">
+                        <select id="searchBedrooms">
+                            <option value="">Any Bedrooms</option>
+                            <option value="1">1 Bedroom</option>
+                            <option value="2">2 Bedrooms</option>
+                            <option value="3">3+ Bedrooms</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="searchProperties()">Search</button>
+                </div>
+            </div>
+
+            <!-- Tabs for Properties and Favorites -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTenantTab('all')">All Properties</button>
+                <button class="tab-btn" onclick="switchTenantTab('favorites')">My Favorites</button>
+                <button class="tab-btn" onclick="switchTenantTab('applications')">
+                    📋 My Applications
+                    <span class="notification-badge" id="tenantApplicationsNotificationBadge" style="display: none;"></span>
+                </button>
+                <button class="tab-btn" onclick="switchTenantTab('payments')">
+                    💰 Payments
+                    <span class="notification-badge" id="tenantPaymentsNotificationBadge" style="display: none;"></span>
+                </button>
+                <button class="tab-btn" onclick="switchTenantTab('messages')">
+                    💬 Messages
+                    <span class="notification-badge" id="tenantMessagesNotificationBadge" style="display: none;"></span>
+                </button>
+            </div>
+
+            <!-- Properties Grid -->
+            <div id="allPropertiesTab" class="tab-content active">
+                <div class="property-grid" id="propertiesGrid"></div>
+            </div>
+
+            <!-- Favorites Grid -->
+            <div id="favoritesTab" class="tab-content">
+                <div class="property-grid" id="favoritesGrid"></div>
+            </div>
+
+            <!-- Applications Tab -->
+            <div id="tenantApplicationsTab" class="tab-content">
+                <div id="tenantApplicationsGrid"></div>
+            </div>
+
+            <!-- Payments Tab -->
+            <div id="tenantPaymentsTab" class="tab-content">
+                <h2>My Payments</h2>
+                <div id="tenantPaymentsGrid"></div>
+            </div>
+
+            <!-- Messages Tab -->
+            <div id="tenantMessagesTab" class="tab-content">
+                <div class="messages-container">
+                    <div class="conversations-list" id="tenantConversationsList" style="display: block; visibility: visible; min-height: 400px;">
+                        <h3 style="display: block; visibility: visible;">Conversations</h3>
+                        <button onclick="loadConversations('tenant')" class="btn btn-secondary" style="margin-bottom: 1rem; width: 100%; display: block;">🔄 Refresh Conversations</button>
+                        <div id="tenantConversationsContent" style="display: block; visibility: visible; min-height: 200px;"></div>
+                    </div>
+                    <div class="message-area">
+                        <div id="tenantMessageHeader" class="message-header">
+                            <p style="color: #999; text-align: center; padding: 2rem;">Select a conversation to start messaging</p>
+                        </div>
+                        <div id="tenantMessageContent" class="message-content"></div>
+                        <div id="tenantMessageInput" class="message-input" style="display: none;">
+                            <form id="tenantSendMessageForm" onsubmit="handleSendMessage(event, 'tenant')">
+                                <textarea id="tenantMessageText" placeholder="Type your message..." rows="3" required></textarea>
+                                <button type="submit" class="btn btn-primary">Send</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Landlord Portal -->
+        <div id="landlord-portal" class="section">
+            <div class="portal-header">
+                <h1>Manage Your Properties</h1>
+                <p>Add and manage your rental listings</p>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchLandlordTab('properties')">My Properties</button>
+                <button class="tab-btn" onclick="switchLandlordTab('add')">Add Property</button>
+                <button class="tab-btn" onclick="switchLandlordTab('applications')">
+                    📋 Applications
+                    <span class="notification-badge" id="applicationsNotificationBadge" style="display: none;"></span>
+                </button>
+                <button class="tab-btn" onclick="switchLandlordTab('payments')">
+                    💰 Payments
+                    <span class="notification-badge" id="paymentsNotificationBadge" style="display: none;"></span>
+                </button>
+                <button class="tab-btn" onclick="switchLandlordTab('inquiries')">
+                    📧 Inquiries
+                    <span class="notification-badge" id="inquiriesNotificationBadge" style="display: none;"></span>
+                </button>
+                <button class="tab-btn" onclick="switchLandlordTab('messages')">
+                    💬 Messages
+                    <span class="notification-badge" id="messagesNotificationBadge" style="display: none;"></span>
+                </button>
+            </div>
+
+            <!-- My Properties Tab -->
+            <div id="propertiesTab" class="tab-content active">
+                <div class="property-grid" id="landlordPropertiesGrid"></div>
+            </div>
+
+            <!-- Add Property Tab -->
+            <div id="addPropertyTab" class="tab-content">
+                <div class="form-card">
+                    <form id="addPropertyForm" onsubmit="handleAddProperty(event)">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Property Title</label>
+                                <input type="text" id="propTitle" required placeholder="e.g., Modern 2BR Apartment">
+                            </div>
+                            <div class="form-group">
+                                <label>Location</label>
+                                <select id="propLocation" required>
+                                    <option value="">-- Select Location --</option>
+                                    <option value="Harare CBD">Harare CBD</option>
+                                    <option value="Avondale, Harare">Avondale, Harare</option>
+                                    <option value="Borrowdale, Harare">Borrowdale, Harare</option>
+                                    <option value="Mount Pleasant, Harare">Mount Pleasant, Harare</option>
+                                    <option value="Greendale, Harare">Greendale, Harare</option>
+                                    <option value="Msasa, Harare">Msasa, Harare</option>
+                                    <option value="Waterfalls, Harare">Waterfalls, Harare</option>
+                                    <option value="Marlborough, Harare">Marlborough, Harare</option>
+                                    <option value="Mbare, Harare">Mbare, Harare</option>
+                                    <option value="Highfield, Harare">Highfield, Harare</option>
+                                    <option value="Glen Norah, Harare">Glen Norah, Harare</option>
+                                    <option value="Bulawayo CBD">Bulawayo CBD</option>
+                                    <option value="Suburbs, Bulawayo">Suburbs, Bulawayo</option>
+                                    <option value="Hillside, Bulawayo">Hillside, Bulawayo</option>
+                                    <option value="Belmont, Bulawayo">Belmont, Bulawayo</option>
+                                    <option value="Mutare">Mutare</option>
+                                    <option value="Gweru">Gweru</option>
+                                    <option value="Kwekwe">Kwekwe</option>
+                                    <option value="Kadoma">Kadoma</option>
+                                    <option value="Masvingo">Masvingo</option>
+                                    <option value="Chinhoyi">Chinhoyi</option>
+                                    <option value="Marondera">Marondera</option>
+                                    <option value="Norton">Norton</option>
+                                    <option value="Chitungwiza">Chitungwiza</option>
+                                    <option value="Victoria Falls">Victoria Falls</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Monthly Rent ($)</label>
+                            <input type="number" id="propPrice" required min="10" max="100000" step="0.01" placeholder="500">
+                            <small id="propPriceError" style="color: #dc3545; font-size: 0.875rem; display: none;"></small>
+                        </div>
+                        <div class="form-group">
+                            <label>Property Type</label>
+                            <select id="propType" required>
+                                <option value="">Select Type</option>
+                                <option value="house">House</option>
+                                <option value="apartment">Apartment</option>
+                                <option value="flat">Flat</option>
+                                <option value="townhouse">Townhouse</option>
+                                <option value="cottage">Cottage</option>
+                                <option value="studio">Studio</option>
+                                <option value="room">Room</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Bedrooms</label>
+                                <input type="number" id="propBedrooms" min="0" value="1">
+                            </div>
+                            <div class="form-group">
+                                <label>Bathrooms</label>
+                                <input type="number" id="propBathrooms" min="1" step="1" value="1">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea id="propDescription" rows="4" placeholder="Describe your property..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Property Images *</label>
+                            <input type="file" id="propImages" multiple accept="image/*" required>
+                            <small>Select up to 5 images (max 10MB each). First image will be the cover photo.</small>
+                        </div>
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="propAvailable" checked>
+                                <span>Available for rent</span>
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Property</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Applications Tab -->
+            <div id="applicationsTab" class="tab-content">
+                <div id="landlordApplicationsGrid"></div>
+            </div>
+
+            <!-- Payments Tab -->
+            <div id="landlordPaymentsTab" class="tab-content">
+                <h2>Incoming Payments</h2>
+                <div id="landlordPaymentsGrid"></div>
+            </div>
+
+            <!-- Inquiries Tab -->
+            <div id="inquiriesTab" class="tab-content">
+                <div id="landlordInquiriesGrid"></div>
+            </div>
+
+            <!-- Messages Tab -->
+            <div id="landlordMessagesTab" class="tab-content">
+                <div class="messages-container">
+                    <div class="conversations-list" id="landlordConversationsList" style="display: block; visibility: visible; min-height: 400px;">
+                        <h3 style="display: block; visibility: visible;">Conversations</h3>
+                        <button onclick="loadConversations('landlord')" class="btn btn-secondary" style="margin-bottom: 1rem; width: 100%; display: block;">🔄 Refresh Conversations</button>
+                        <div id="landlordConversationsContent" style="display: block; visibility: visible; min-height: 200px;"></div>
+                    </div>
+                    <div class="message-area">
+                        <div id="landlordMessageHeader" class="message-header">
+                            <p style="color: #999; text-align: center; padding: 2rem;">Select a conversation to start messaging</p>
+                        </div>
+                        <div id="landlordMessageContent" class="message-content"></div>
+                        <div id="landlordMessageInput" class="message-input" style="display: none;">
+                            <form id="landlordSendMessageForm" onsubmit="handleSendMessage(event, 'landlord')">
+                                <textarea id="landlordMessageText" placeholder="Type your message..." rows="3" required></textarea>
+                                <button type="submit" class="btn btn-primary">Send</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages Section -->
+        <div id="messages-section" class="section">
+            <div class="portal-header">
+                <h1>Messages</h1>
+                <p>Communicate with landlords and tenants</p>
+            </div>
+
+            <div class="messages-container">
+                <div class="conversations-list" id="conversationsList">
+                    <h3>Conversations</h3>
+                    <div id="conversationsContent"></div>
+                </div>
+                <div class="message-area">
+                    <div id="messageHeader" class="message-header"></div>
+                    <div id="messageContent" class="message-content"></div>
+                    <div id="messageInput" class="message-input">
+                        <form id="sendMessageForm" onsubmit="handleSendMessage(event)">
+                            <input type="hidden" id="messageToUserId">
+                            <input type="hidden" id="messagePropertyId">
+                            <textarea id="messageText" placeholder="Type your message..." rows="3" required></textarea>
+                            <button type="submit" class="btn btn-primary">Send</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Property Detail Modal -->
+    <div id="propertyModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2 id="modalTitle"></h2>
+                <button class="close-btn" onclick="closeModal()">×</button>
+            </div>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <!-- Rental Application Modal -->
+    <div id="applicationModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>📋 Apply to Rent</h2>
+                <button class="close-btn" onclick="closeApplicationModal()">×</button>
+            </div>
+            <div id="applicationModalContent">
+                <form id="rentalApplicationForm" onsubmit="submitRentalApplication(event)">
+                    <input type="hidden" id="appPropertyId" value="">
+                    
+                    <div class="form-group">
+                        <label>Move-in Date *</label>
+                        <input type="date" id="appMoveInDate" required>
+                        <small>When do you want to move in?</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Lease Duration (months) *</label>
+                        <input type="number" id="appLeaseDuration" required min="1" max="24" value="12">
+                        <small>How long do you plan to rent? (1-24 months)</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Number of Occupants *</label>
+                        <input type="number" id="appOccupants" required min="1" max="20" value="1">
+                        <small>How many people will live in the property?</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Do you have pets?</label>
+                        <select id="appHasPets" onchange="togglePetDetails()">
+                            <option value="false">No</option>
+                            <option value="true">Yes</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" id="petDetailsGroup" style="display: none;">
+                        <label>Pet Details</label>
+                        <input type="text" id="appPetDetails" placeholder="e.g., 1 small dog, 2 cats">
+                        <small>Please describe your pets</small>
+                    </div>
+                    
+                    <h3 style="margin-top: 1.5rem;">Emergency Contact</h3>
+                    
+                    <div class="form-group">
+                        <label>Contact Name *</label>
+                        <input type="text" id="appEmergencyName" required placeholder="Full name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Contact Phone *</label>
+                        <input type="tel" id="appEmergencyPhone" required pattern="\+263[0-9]{9}" placeholder="+263771234567">
+                        <small>Format: +263 followed by 9 digits</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Relationship *</label>
+                        <input type="text" id="appEmergencyRelationship" required placeholder="e.g., Mother, Brother, Friend">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Additional Message (Optional)</label>
+                        <textarea id="appMessage" rows="4" placeholder="Tell the landlord about yourself, your rental history, or any questions you have..."></textarea>
+                    </div>
+                    
+                    <div style="background: #e9ecef; padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+                        <p style="margin: 0; font-size: 0.9rem;">
+                            ℹ️ <strong>Note:</strong> Your application will be sent to the landlord for review. 
+                            They can approve or reject it. You'll be notified of their decision.
+                        </p>
+                    </div>
+                    
+                    <div style="display: flex; gap: 0.5rem; margin-top: 1.5rem;">
+                        <button type="submit" class="btn btn-primary" style="flex: 1;">
+                            📋 Submit Application
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="closeApplicationModal()">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="portal.js"></script>
+</body>
+</html>

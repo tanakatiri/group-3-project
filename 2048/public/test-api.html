@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API - RentHub</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #667eea;
+            margin-top: 0;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        .result {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .error {
+            background: #fee;
+            color: #c00;
+        }
+        .success {
+            background: #efe;
+            color: #060;
+        }
+        input, select {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 RentHub API Tester</h1>
+
+    <!-- Test 1: Multi-Currency Calculator -->
+    <div class="test-section">
+        <h2>1. Multi-Currency Calculator</h2>
+        <p>Test rental cost calculation in different currencies</p>
+        
+        <label>Property ID:</label>
+        <input type="text" id="propertyId" placeholder="Enter property ID" style="width: 300px;">
+        <br>
+        
+        <label>Check-in:</label>
+        <input type="date" id="checkIn" value="2025-01-15">
+        
+        <label>Check-out:</label>
+        <input type="date" id="checkOut" value="2025-02-14">
+        <br>
+        
+        <label>Currency:</label>
+        <select id="currency">
+            <option value="USD">USD - US Dollar</option>
+            <option value="ZWL">ZWL - Zimbabwean Dollar</option>
+            <option value="ZAR">ZAR - South African Rand</option>
+            <option value="GBP">GBP - British Pound</option>
+            <option value="EUR">EUR - Euro</option>
+        </select>
+        <br><br>
+        
+        <button onclick="testCalculation()">Calculate</button>
+        <button onclick="testAllCurrencies()">Test All Currencies</button>
+        
+        <div id="calcResult" class="result" style="display: none;"></div>
+    </div>
+
+    <!-- Test 2: Get Properties -->
+    <div class="test-section">
+        <h2>2. Get Properties</h2>
+        <p>Fetch all properties to get a property ID</p>
+        
+        <button onclick="getProperties()">Get All Properties</button>
+        
+        <div id="propertiesResult" class="result" style="display: none;"></div>
+    </div>
+
+    <!-- Test 3: Applications -->
+    <div class="test-section">
+        <h2>3. Test Applications</h2>
+        <p>Check if applications endpoint works</p>
+        
+        <button onclick="testApplicationsEndpoint()">Test Endpoint</button>
+        
+        <div id="appResult" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+
+        async function testCalculation() {
+            const propertyId = document.getElementById('propertyId').value;
+            const checkIn = document.getElementById('checkIn').value;
+            const checkOut = document.getElementById('checkOut').value;
+            const currency = document.getElementById('currency').value;
+            
+            if (!propertyId) {
+                alert('Please enter a property ID. Click "Get All Properties" first to get one.');
+                return;
+            }
+            
+            const resultDiv = document.getElementById('calcResult');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result';
+            resultDiv.textContent = 'Loading...';
+            
+            try {
+                const response = await fetch(`${API_URL}/rental-calculations/calculate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        propertyId,
+                        checkIn,
+                        checkOut,
+                        currency
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = 'Error: ' + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function testAllCurrencies() {
+            const propertyId = document.getElementById('propertyId').value;
+            const checkIn = document.getElementById('checkIn').value;
+            const checkOut = document.getElementById('checkOut').value;
+            
+            if (!propertyId) {
+                alert('Please enter a property ID');
+                return;
+            }
+            
+            const resultDiv = document.getElementById('calcResult');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result';
+            resultDiv.textContent = 'Testing all currencies...\n\n';
+            
+            const currencies = ['USD', 'ZWL', 'ZAR', 'GBP', 'EUR'];
+            
+            for (const curr of currencies) {
+                try {
+                    const response = await fetch(`${API_URL}/rental-calculations/calculate`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ propertyId, checkIn, checkOut, currency: curr })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        const total = data.calculation.pricing.total;
+                        const symbol = data.calculation.currencySymbol;
+                        resultDiv.textContent += `✅ ${curr}: ${symbol}${total.toLocaleString()}\n`;
+                    } else {
+                        resultDiv.textContent += `❌ ${curr}: ${data.message}\n`;
+                    }
+                } catch (error) {
+                    resultDiv.textContent += `❌ ${curr}: ${error.message}\n`;
+                }
+            }
+            
+            resultDiv.className = 'result success';
+        }
+
+        async function getProperties() {
+            const resultDiv = document.getElementById('propertiesResult');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result';
+            resultDiv.textContent = 'Loading...';
+            
+            try {
+                const response = await fetch(`${API_URL}/houses`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `Found ${data.length} properties:\n\n`;
+                    
+                    data.forEach((prop, index) => {
+                        resultDiv.textContent += `${index + 1}. ${prop.title}\n`;
+                        resultDiv.textContent += `   ID: ${prop._id}\n`;
+                        resultDiv.textContent += `   Location: ${prop.location}\n`;
+                        resultDiv.textContent += `   Price: $${prop.price}/month\n\n`;
+                    });
+                    
+                    if (data.length > 0) {
+                        document.getElementById('propertyId').value = data[0]._id;
+                        resultDiv.textContent += `\n✅ First property ID copied to calculator above!`;
+                    }
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = 'Error: ' + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function testApplicationsEndpoint() {
+            const resultDiv = document.getElementById('appResult');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result';
+            resultDiv.textContent = 'Testing applications endpoint...\n\n';
+            
+            try {
+                // Test without auth (should fail)
+                const response = await fetch(`${API_URL}/rental-applications/my-applications`);
+                const data = await response.json();
+                
+                if (response.status === 401) {
+                    resultDiv.textContent += '✅ Endpoint exists (requires authentication)\n';
+                    resultDiv.textContent += `Response: ${JSON.stringify(data, null, 2)}\n\n`;
+                    resultDiv.textContent += 'This is correct! You need to login first to see applications.';
+                    resultDiv.className = 'result success';
+                } else {
+                    resultDiv.textContent += `Status: ${response.status}\n`;
+                    resultDiv.textContent += `Response: ${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

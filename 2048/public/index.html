@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RentHub - Find Your Perfect Home</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="container">
+      <div class="nav-content">
+        <div class="logo">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+          <span>RentHub</span>
+        </div>
+        <div class="nav-links">
+          <a href="/admin.html" class="nav-link" style="color: #666;">⚙️ Admin</a>
+          <button onclick="openSignupModal()" class="btn btn-secondary">Sign Up</button>
+          <button onclick="openLoginModal()" class="btn btn-primary">Login</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <div style="max-width: 800px; margin: 0 auto; text-align: center;">
+        <h1 class="hero-title">Find a Home You Can Trust</h1>
+        <p class="hero-subtitle">Confidence starts here. Explore rentals from real landlords</p>
+        
+        <!-- Search Bar -->
+        <div style="max-width: 600px; margin: 2.5rem auto 0;">
+          <div class="search-bar" style="background: white; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            <input type="text" id="searchInput" placeholder="Search by location, title, or description..." style="border: none; font-size: 1.05rem;">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Hidden Filters Section (for functionality) -->
+  <section style="display: none;">
+    <div class="container">
+      <div class="search-section">
+        <div class="filter-controls" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+          <!-- Property Type -->
+          <div>
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Property Type</label>
+            <select id="propertyType" class="filter-select" style="width: 100%;">
+              <option value="all">All Types</option>
+              <option value="house">House</option>
+              <option value="apartment">Apartment</option>
+              <option value="flat">Flat</option>
+              <option value="townhouse">Townhouse</option>
+              <option value="cottage">Cottage</option>
+              <option value="studio">Studio</option>
+              <option value="room">Room</option>
+            </select>
+          </div>
+          
+          <!-- Bedrooms -->
+          <div>
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Bedrooms</label>
+            <select id="bedrooms" class="filter-select" style="width: 100%;">
+              <option value="">Any</option>
+              <option value="1">1+</option>
+              <option value="2">2+</option>
+              <option value="3">3+</option>
+              <option value="4">4+</option>
+              <option value="5">5+</option>
+            </select>
+          </div>
+          
+          <!-- Bathrooms -->
+          <div>
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Bathrooms</label>
+            <select id="bathrooms" class="filter-select" style="width: 100%;">
+              <option value="">Any</option>
+              <option value="1">1+</option>
+              <option value="2">2+</option>
+              <option value="3">3+</option>
+            </select>
+          </div>
+          
+          <!-- Furnished -->
+          <div>
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Furnished</label>
+            <select id="furnished" class="filter-select" style="width: 100%;">
+              <option value="all">All</option>
+              <option value="true">Furnished</option>
+              <option value="false">Unfurnished</option>
+            </select>
+          </div>
+          
+          <!-- Min Rating -->
+          <div>
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Min Rating</label>
+            <select id="minRating" class="filter-select" style="width: 100%;">
+              <option value="">Any</option>
+              <option value="4">4+ Stars</option>
+              <option value="4.5">4.5+ Stars</option>
+            </select>
+          </div>
+          
+          <!-- Sort By -->
+          <div>
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Sort By</label>
+            <select id="sortBy" class="filter-select" style="width: 100%;">
+              <option value="newest">Newest First</option>
+              <option value="price-low">Price: Low to High</option>
+              <option value="price-high">Price: High to Low</option>
+              <option value="rating">Highest Rated</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="price-filter" style="margin-top: 1rem;">
+          <label style="font-weight: 500;">Price Range: $<span id="minPriceValue">0</span> - $<span id="maxPriceValue">5000</span></label>
+          <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
+            <input type="range" id="minPrice" min="0" max="10000" step="100" value="0" style="flex: 1;">
+            <input type="range" id="maxPrice" min="0" max="10000" step="100" value="5000" style="flex: 1;">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Houses Grid -->
+  <section class="houses-section">
+    <div class="container">
+      <div id="loadingSpinner" class="loading">
+        <div class="spinner"></div>
+        <p>Loading properties...</p>
+      </div>
+      <div id="houseList" class="house-grid"></div>
+      <div id="noResults" class="no-results" style="display: none;">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
+        </svg>
+        <h3>No properties found</h3>
+        <p>Try adjusting your search or filters</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section style="background: white; padding: 5rem 0; margin-top: 0;">
+    <div class="container">
+      <div style="max-width: 700px; margin: 0 auto 4rem auto; text-align: center;">
+        <h2 style="margin-bottom: 1rem; font-size: 2.25rem; font-weight: 700;">Why Choose RentHub?</h2>
+        <p style="color: #6c757d; font-size: 1.1rem;">Everything you need to find your perfect home, all in one place</p>
+      </div>
+      
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 3rem; max-width: 1200px; margin: 0 auto;">
+        <div style="text-align: center;">
+          <div style="width: 80px; height: 80px; margin: 0 auto 1.5rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+          </div>
+          <h3 style="margin: 0 0 0.75rem 0; font-size: 1.25rem; font-weight: 600;">Wide Selection</h3>
+          <p style="margin: 0; color: #6c757d; line-height: 1.7; font-size: 0.95rem;">Browse verified properties across Zimbabwe. From apartments to houses, find your perfect match.</p>
+        </div>
+        
+        <div style="text-align: center;">
+          <div style="width: 80px; height: 80px; margin: 0 auto 1.5rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+          <h3 style="margin: 0 0 0.75rem 0; font-size: 1.25rem; font-weight: 600;">Verified Listings</h3>
+          <p style="margin: 0; color: #6c757d; line-height: 1.7; font-size: 0.95rem;">All properties are verified by our team. No fake listings, no scams - just genuine opportunities.</p>
+        </div>
+        
+        <div style="text-align: center;">
+          <div style="width: 80px; height: 80px; margin: 0 auto 1.5rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+              <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+              <line x1="1" y1="10" x2="23" y2="10"></line>
+            </svg>
+          </div>
+          <h3 style="margin: 0 0 0.75rem 0; font-size: 1.25rem; font-weight: 600;">Secure Payments</h3>
+          <p style="margin: 0; color: #6c757d; line-height: 1.7; font-size: 0.95rem;">Safe escrow payment system protects both parties. Your money is secure until move-in.</p>
+        </div>
+        
+        <div style="text-align: center;">
+          <div style="width: 80px; height: 80px; margin: 0 auto 1.5rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+          </div>
+          <h3 style="margin: 0 0 0.75rem 0; font-size: 1.25rem; font-weight: 600;">24/7 Support</h3>
+          <p style="margin: 0; color: #6c757d; line-height: 1.7; font-size: 0.95rem;">Our dedicated support team is here to help you anytime. Questions? We've got answers.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Inquiry Modal -->
+  <div id="inquiryModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Contact Landlord</h2>
+        <button class="close-btn" onclick="closeInquiryModal()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <form id="inquiryForm" class="inquiry-form">
+        <input type="hidden" id="inquiryHouseId">
+        <div class="form-group">
+          <label>Your Name *</label>
+          <input type="text" id="tenantName" required>
+        </div>
+        <div class="form-group">
+          <label>Email *</label>
+          <input type="email" id="tenantEmail" required>
+        </div>
+        <div class="form-group">
+          <label>Phone *</label>
+          <input type="tel" id="tenantPhone" required pattern="\+2637[1378][0-9]{7}" placeholder="+263771234567" title="Must start with +263 followed by 71, 73, 77, or 78, then 7 more digits">
+          <small style="color: #666; font-size: 0.875rem;">Format: +263 7x xxx xxxx</small>
+        </div>
+        <div class="form-group">
+          <label>Message</label>
+          <textarea id="inquiryMessage" rows="4" placeholder="I'm interested in this property..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Send Inquiry</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- House Detail Modal -->
+  <div id="detailModal" class="modal">
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h2 id="detailTitle"></h2>
+        <button class="close-btn" onclick="closeDetailModal()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div id="detailContent"></div>
+    </div>
+  </div>
+
+  <!-- Signup Modal -->
+  <div id="signupModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-header">
+        <h2>Sign Up</h2>
+        <button class="modal-close" onclick="closeSignupModal()">&times;</button>
+      </div>
+      <form id="signupForm" onsubmit="handleSignup(event)">
+        <div class="form-group">
+          <label>I want to sign up as:</label>
+          <select id="signupRole" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1rem;">
+            <option value="">-- Select Role --</option>
+            <option value="tenant">🏠 Tenant (Looking for a property)</option>
+            <option value="landlord">🏢 Landlord (I have properties to rent)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Full Name *</label>
+          <input type="text" id="signupFullName" required placeholder="Enter your full name" pattern="[A-Za-z\s\-']{2,50}" title="Only letters, spaces, hyphens and apostrophes allowed (2-50 characters)">
+        </div>
+        <div class="form-group">
+          <label>Email Address *</label>
+          <input type="email" id="signupEmail" required placeholder="your@email.com">
+        </div>
+        <div class="form-group">
+          <label>Phone Number *</label>
+          <input type="tel" id="signupPhone" required pattern="\+2637[1378][0-9]{7}" placeholder="+263771234567" title="Must start with +263 followed by 71, 73, 77, or 78, then 7 more digits">
+          <small style="color: #666; font-size: 0.875rem;">Format: +263 7x xxx xxxx</small>
+        </div>
+        <div class="form-group">
+          <label>Password *</label>
+          <input type="password" id="signupPassword" required minlength="6" placeholder="At least 6 characters" autocomplete="new-password">
+        </div>
+        <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+          <button type="submit" class="btn btn-primary" style="flex: 1;">Sign Up</button>
+          <button type="button" class="btn btn-secondary" onclick="closeSignupModal()" style="flex: 1;">Cancel</button>
+        </div>
+        <p style="text-align: center; margin-top: 1rem; color: var(--text-secondary);">
+          Already have an account? <a href="#" onclick="closeSignupModal(); openLoginModal(); return false;" style="color: var(--primary-color);">Login</a>
+        </p>
+      </form>
+    </div>
+  </div>
+
+  <!-- Login Modal -->
+  <div id="loginModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-header">
+        <h2>Login</h2>
+        <button class="modal-close" onclick="closeLoginModal()">&times;</button>
+      </div>
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label>Login as:</label>
+          <select id="loginRole" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1rem;">
+            <option value="">-- Select Role --</option>
+            <option value="tenant">🏠 Tenant</option>
+            <option value="landlord">🏢 Landlord</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Email Address *</label>
+          <input type="email" id="loginEmail" required placeholder="your@email.com">
+        </div>
+        <div class="form-group">
+          <label>Password *</label>
+          <input type="password" id="loginPassword" required placeholder="Enter your password" autocomplete="current-password">
+        </div>
+        <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+          <button type="submit" class="btn btn-primary" style="flex: 1;">Login</button>
+          <button type="button" class="btn btn-secondary" onclick="closeLoginModal()" style="flex: 1;">Cancel</button>
+        </div>
+        <p style="text-align: center; margin-top: 1rem; color: var(--text-secondary);">
+          Don't have an account? <a href="#" onclick="closeLoginModal(); openSignupModal(); return false;" style="color: var(--primary-color);">Sign Up</a>
+        </p>
+      </form>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
